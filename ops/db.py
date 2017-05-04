@@ -5,7 +5,7 @@ import psycopg2
 import psycopg2.extras
 import psycopg2.extensions
 import credentials
-from db_config import config as db_config
+from settings.db_config import config as db_config
 sshtunnel.DAEMON = True  # Prevent hanging process due to forward thread
 
 
@@ -55,13 +55,17 @@ class db(object):
             if len(t):
                 self.cur.execute(t)
         self.conn.commit()
+        return self.cur.statusmessage
 
 
 def initialize_database():
     config = dict(credentials.postgresql_connection(), **vars(db_config()))
     with db(config) as db_conn:
-        db_conn.init_db()
-    print 'Initialized database tables and combos'
+        status = db_conn.init_db()
+    if status == 'CREATE TABLE':
+        print 'Initialized database.'
+    else:
+        raise RuntimeError(status)
 
 
 def main():
