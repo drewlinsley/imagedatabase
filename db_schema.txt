@@ -8,4 +8,4 @@ create table images (_id bigserial primary key, filename varchar, type varchar, 
 create table labels (_id bigserial primary key, name varchar, experiment_id int, index int)
 create table experiments (_id bigserial primary key, name varchar, parent_exp_id int)
 create table annotations (_id bigserial primary key, filename varchar, data json, type varchar, image_id int, experiment_id int)
-create table image_label_join (image_id int, label_id int, order int)
+create table image_label_join (image_id int, label_id int, image_order int)

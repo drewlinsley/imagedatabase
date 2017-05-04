@@ -29,4 +29,3 @@ def x7_credentials():
             'password': 'serrelab',
             'ssh_address': 'x7.clps.brown.edu'
            }
-

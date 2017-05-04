@@ -1,15 +1,11 @@
 #!/usr/bin/env python
-import os
 import sshtunnel
 import itertools
 import psycopg2
 import psycopg2.extras
 import psycopg2.extensions
-import numpy as np
 import credentials
-from copy import deepcopy
-
-db_schema_file = os.path.join('ops', 'db_schema.txt')
+from db_config import config as db_config
 sshtunnel.DAEMON = True  # Prevent hanging process due to forward thread
 
 
@@ -26,7 +22,7 @@ class db(object):
     def __enter__(self):
         forward = sshtunnel.SSHTunnelForwarder(
             credentials.x7_credentials()['ssh_address'],
-            ssh_username=self.username,
+            ssh_username=self.user,
             ssh_password=self.password,
             remote_bind_address=('127.0.0.1', 5432))
         forward.start()
@@ -53,7 +49,7 @@ class db(object):
         self.conn.close()
 
     def init_db(self):
-        db_schema = open(db_schema_file).read().splitlines()
+        db_schema = open(self.db_schema_file).read().splitlines()
         for s in db_schema:
             t = s.strip()
             if len(t):
@@ -62,8 +58,8 @@ class db(object):
 
 
 def initialize_database():
-    creds = credentials.results_postgresql_credentials()
-    with db(creds) as db_conn:
+    config = dict(credentials.postgresql_connection(), **vars(db_config()))
+    with db(config) as db_conn:
         db_conn.init_db()
     print 'Initialized database tables and combos'
 
