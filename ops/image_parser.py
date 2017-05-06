@@ -68,27 +68,16 @@ def get_image_size(file_path):
     return width, height
 
 
-def get_image_labels(files, image_key):
-    labels = []
+def get_image_label(f, image_key):
     # Interpret key
     if image_key == 'synset':
-        from keys.synset import get_label_from_index
+        from keys.synset import get_label_from_file
     elif image_key == 'coco':
         pass
     elif image_key == 'salicon':
         pass
 
-    for f in files:
-        labels += [get_label_from_index(f, image_key)]
-    return labels
-
-def get_image_info(fn, label):
-    return {
-        'file': '',
-        'im_type': '',
-        'height': '',
-        'width': '',
-        'image_id': '',
-        'name': label,
-        'label_id': ''
-    }
+    synset_parent = None
+    label, class_index = get_label_from_file(f)
+    # synset_parent is not implemented yet
+    return label, synset_parent, class_index

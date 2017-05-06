@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS experiments
 DROP TABLE IF EXISTS annotations
 DROP TABLE IF EXISTS image_label_join
 
-create table images (_id bigserial primary key, filename varchar, type varchar, height serial, width serial, channels serial, experiment_id int, parent_image_id bigint);
+create table images (_id bigserial primary key, filename varchar, encoding varchar, height serial, width serial, channels serial, experiment_id int, parent_image_id bigint);
 create table labels (_id bigserial primary key, name varchar, experiment_id bigint, class_index bigint, parent_label_id bigint)
 create table experiments (_id bigserial primary key, name varchar, parent_exp_id bigint)
 create table annotations (_id bigserial primary key, filename varchar, data json, type varchar, image_id bigint, experiment_id bigint)

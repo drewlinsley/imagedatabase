@@ -1008,24 +1008,21 @@ def synset_list():
 
 def get_synset_map():
     synset = synset_list()
-    synset_map = {}
+    synset_map = []
     for i, l in enumerate(synset):
         label, desc = l.split(' ', 1)
-        synset_map[label] = {"index": i, "desc": desc, "synset": label}
+        synset_map += [{"desc": desc, "synset": label}]
     return synset_map
 
 
-def get_label_from_synset(synset, synset_map):
-    syn = [synset_map[k]['index'] for k in synset_map.keys() if synset == k]
-    if len(syn) == 0:
-        print 'Cannot find %s' % synset
-    else:
-        return syn[0]
+def file_parser(f):
+    return int(f.split('/')[-1].split('_')[0])
 
 
-def get_label_from_index(index):
+def get_label_from_file(f):
+    index = file_parser(f)
     synset_map = get_synset_map()
-    return synset_map[index]['synset']
+    return synset_map[index]['synset'], index
 
 
 def print_prob(prob, file_path):

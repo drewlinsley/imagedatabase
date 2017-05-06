@@ -49,12 +49,12 @@ class db(object):
         self.conn.close()
 
     def init_db(self):
-        # db_schema = open(self.db_schema_file).read().splitlines()
-        # for s in db_schema:
-        #     t = s.strip()
-        #     if len(t):
-        #         self.cur.execute(t)
-        self.cur.execute(open(self.db_schema_file).read())
+        db_schema = open(self.db_schema_file).read().splitlines()
+        for s in db_schema:
+            t = s.strip()
+            if len(t):
+                self.cur.execute(t)
+        # self.cur.execute(open(self.db_schema_file).read())
         self.conn.commit()
 
     def return_status(
@@ -80,7 +80,8 @@ class db(object):
     def add_experiment(
             self,
             experiment_name,
-            parent_experiment=None):
+            parent_experiment=None,
+            status_message=False):
         """
         For adding a new experiment name, such as ILSVRC12
         ::
@@ -106,14 +107,31 @@ class db(object):
             SELECT %(experiment_name)s, %(parent_exp_id)s
             WHERE NOT EXISTS (
                 SELECT 1 FROM experiments WHERE name=%(experiment_name)s
-                );
+                )
+            RETURNING _id;
             """,
             {
                 'experiment_name': experiment_name,
                 'parent_exp_id': parent_id,
             }
             )
-        self.return_status('INSERT')
+        if status_message:
+            self.return_status('INSERT')
+        output = self.cur.fetchone()
+        if output:
+            return output['_id']
+        else:
+            self.cur.execute(
+                """
+                SELECT _id from experiments
+                WHERE name=%(experiment_name)s
+                """,
+                {
+                    'experiment_name': experiment_name,
+                    'parent_exp_id': parent_id,
+                }
+            )
+            return self.cur.fetchone()['_id']
 
     def add_labels(
             self,
@@ -134,7 +152,7 @@ class db(object):
             """
             INSERT INTO labels
             (name, experiment_id, class_index, parent_label_id)
-            SELECT (%(name)s, %(experiment_id)s, %(class_index)s, %(parent_label_id)s)
+            SELECT %(name)s, %(experiment_id)s, %(class_index)s, %(parent_label_id)s
             WHERE NOT EXISTS (
                 SELECT * FROM labels
                 WHERE name=%(name)s AND experiment_id=%(experiment_id)s
@@ -181,14 +199,13 @@ class db(object):
             self.return_status('INSERT')
         return self.cur.fetchone()['_id']
 
-
     def add_image_label_join(
             self,
             filename,
             image_experiment_name,
             label_name,
             label_experiment_name,
-            label_order=0,
+            label_order=None,
             status_message=False):
         """
         image_experiment_name e.g. imagenet
@@ -196,27 +213,26 @@ class db(object):
         label_name e.g. synset
         label_order e.g. the ordering of images in a specific db or experiment
         """
-
         self.cur.execute(
             """
             INSERT INTO image_label_join
             (image_id, label_id, image_order)
             VALUES (
-                SELECT _id FROM images
+                (SELECT _id FROM images
                     WHERE filename=%(image_filename)s AND experiment_id=(
-                    SELECT id FROM experiments as e WHERE e.name=%(image_experiment_name)s
-                    ),
-                SELECT _id FROM labels
+                    SELECT _id FROM experiments as e WHERE e.name=%(image_experiment_name)s
+                    )),
+                (SELECT _id FROM labels
                     WHERE name=%(label_name)s AND experiment_id=(
-                    SELECT id FROM experiments as f WHERE f.name=%(label_experiment_name)s
-                    ),
-                %(label_order)s );
+                    SELECT _id FROM experiments as f WHERE f.name=%(label_experiment_name)s
+                    )),
+                (%(label_order)s) );
             """,
             {
                 'image_filename': filename,
                 'image_experiment_name': image_experiment_name,
                 'label_name': label_name,
-                'image_experiment_name': image_experiment_name,
+                'label_experiment_name': label_experiment_name,
                 'label_order': label_order,
             }
             )

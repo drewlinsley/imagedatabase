@@ -13,24 +13,16 @@ class config():
 
         # Path to search for images
         self.experiment_names = [
-            'ILSVRC12_validation',
-            'ILSVRC12_train'
-        ]
-        self.parent_experiments = [
-            None,
-            None
+            'ILSVRC12',
+            'ILSVRC12',
         ]
         self.label_names = [
-            'ILSVRC12_validation',
-            'ILSVRC12_train'
+            'validation',
+            'train'
         ]
         self.image_paths = [
             '/media/data_cifs/clicktionary/webapp_data/lmdb_validations',
             '/media/data_cifs/clicktionary/webapp_data/lmdb_trains'
-        ]
-        self.label_paths = [
-            None,
-            None
         ]
         self.encoding = 'rgb'  # Need to automate this eventually...
         self.image_file_filter = '*.JPEG'
